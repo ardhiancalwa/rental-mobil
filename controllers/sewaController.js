@@ -1,3 +1,5 @@
+const mobil = require("../models/mobil");
+
 let sewaModel = require("../models/index").sewa
 let mobilModel = require("../models/index").mobil
 
@@ -14,6 +16,24 @@ exports.getSewa = async (request, response) => {
         Count: data_sewa.length,
         sewa: data_sewa,
     });
+}
+
+exports.findSewa = async(request, response) => {
+    let start = request.body.start // tgl awal
+    let end = request.body.end // tgl akhir
+
+    let dataSewa = await sewaModel.findAll({
+        include: [
+            "pelanggan",
+            "karyawan",
+            "mobil"
+          ],
+        where: {
+            waktu: {[Op.between]:[start, end]}
+          }
+    })
+
+    return response.json(dataSewa)
 }
 
 exports.addSewa = async(request, response) => {
@@ -63,8 +83,8 @@ exports.updateSewa = (request, response) => {
         total_bayar: request.body.total_bayar
     }
     // eksekusi 
-    modelSewa.update(data_sewa, { where: { id_sewa: id_sewa } })
-        .then(result => {
+    sewaModel.update(data_sewa, { where: { id_sewa: id_sewa } })
+        .then( async(result) => {
             return response.json({
                 message: `Data sewa telah diubah`
             })
@@ -81,7 +101,7 @@ exports.deleteSewa = (request, response) => {
         id_sewa: request.params.id_sewa
     }
 
-    modelMobil.destroy({ where: params })
+    sewaModel.destroy({ where: params })
         .then(result => {
             return response.json({
                 message: `Data sewa berhasil dihapus`
